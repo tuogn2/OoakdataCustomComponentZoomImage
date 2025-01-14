@@ -11,7 +11,7 @@ export const ZoomImage: FC = () => {
     name: 'zoomMode',
     initialValue: 'normal'
   })
-  const [zoomLevel] = Retool.useStateNumber({
+  const [zoomLevel, setZoomLevel] = Retool.useStateNumber({
     name: 'zoomLevel',
     initialValue: 3
   })
@@ -43,7 +43,10 @@ export const ZoomImage: FC = () => {
     event.preventDefault()
     if (!containerRef.current) return
 
-    if (zoomMode !== 'normal') return
+    if (zoomMode !== 'normal') {
+      setZoomLevel(Math.max(zoomLevel * (event.deltaY < 0 ? 1.3 : 0.75), 1))
+      return
+    }
 
     const container = containerRef.current
     const rect = container.getBoundingClientRect()
@@ -125,8 +128,8 @@ export const ZoomImage: FC = () => {
           alt={imageAlt}
           width={'auto'}
           height={'100%'}
-          magnifierWidth={400 / zoomLevel}
-          magnifierHeight={400 / zoomLevel}
+          magnifierWidth={zoomMode === 'glass' ? 180 : 400 / zoomLevel}
+          magnifierHeight={zoomMode === 'glass' ? 180 : 400 / zoomLevel}
           mode={zoomMode}
           zoomLevel={zoomLevel}
         />

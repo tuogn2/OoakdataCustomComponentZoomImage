@@ -110,7 +110,7 @@ const ImageMagnifier = ({
               style={{
                 width: '100%',
                 height: '100%',
-                backgroundColor: showMagnifier ? '#00000055' : 'transparent',
+                backgroundColor: showMagnifier ? '#00000033' : 'transparent',
                 transition: 'all 500ms',
                 position: 'absolute',
                 top: 0,
