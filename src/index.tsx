@@ -7,9 +7,13 @@ import ImageMagnifier from './components/ImageMagnifier'
 export const ZoomImage: FC = () => {
   const [imageUrl, _setImageUrl] = Retool.useStateString({ name: 'imageUrl' })
   const [imageAlt, setImageAlt] = Retool.useStateString({ name: 'imageAlt' })
-  const [isZoomMode] = Retool.useStateBoolean({
-    name: 'isZoomMode',
-    initialValue: false
+  const [zoomMode] = Retool.useStateString({
+    name: 'zoomMode',
+    initialValue: 'normal'
+  })
+  const [zoomLevel] = Retool.useStateNumber({
+    name: 'zoomLevel',
+    initialValue: 3
   })
 
   const [zoomInfo, setZoomInfo] = useState({ x: 0, y: 0, level: 1 })
@@ -39,7 +43,7 @@ export const ZoomImage: FC = () => {
     event.preventDefault()
     if (!containerRef.current) return
 
-    if (isZoomMode) return
+    if (zoomMode !== 'normal') return
 
     const container = containerRef.current
     const rect = container.getBoundingClientRect()
@@ -102,15 +106,12 @@ export const ZoomImage: FC = () => {
       ref={containerRef}
       style={{
         position: 'relative',
-        width: '100%',
+        margin: '0 auto',
+        width: 'auto',
         height: '100%',
         overflow: 'hidden',
         borderRadius: '8px',
-        cursor: isDragging
-          ? 'grabbing'
-          : zoomInfo.level > 1
-            ? 'grab'
-            : 'default'
+        cursor: zoomInfo.level > 1 && isDragging ? 'grab' : 'default'
       }}
       onWheel={handleZoomScroll}
       onMouseDown={handleMouseDown}
@@ -118,12 +119,16 @@ export const ZoomImage: FC = () => {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      {isZoomMode && cursorPosition && containerRef.current ? (
+      {zoomMode !== 'normal' && cursorPosition && containerRef.current ? (
         <ImageMagnifier
           src={imageUrl}
           alt={imageAlt}
           width={'auto'}
           height={'100%'}
+          magnifierWidth={400 / zoomLevel}
+          magnifierHeight={400 / zoomLevel}
+          mode={zoomMode}
+          zoomLevel={zoomLevel}
         />
       ) : imageUrl ? (
         <img
@@ -135,7 +140,7 @@ export const ZoomImage: FC = () => {
             width: 'auto',
             height: '100%',
             objectFit: 'contain',
-            transition: 'all 200ms',
+            transition: isDragging ? 'none' : 'all 200ms',
             top: zoomInfo.y,
             left: zoomInfo.x,
             transform: `scale(${zoomInfo.level})`,
