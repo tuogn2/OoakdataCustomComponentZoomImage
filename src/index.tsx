@@ -48,7 +48,7 @@ export const ZoomImage: FC = () => {
 
     setZoomInfo((prevZoomInfo: any) => {
       const prevZoom = prevZoomInfo.level
-      let newZoom = prevZoom + (event.deltaY < 0 ? 0.1 : -0.1)
+      let newZoom = prevZoom + (event.deltaY < 0 ? 0.12 : -0.12)
       newZoom = Math.min(Math.max(newZoom, 1), 4)
       if (newZoom === 1)
         return {
@@ -135,7 +135,7 @@ export const ZoomImage: FC = () => {
             width: 'auto',
             height: '100%',
             objectFit: 'contain',
-            transition: 'scale 200ms',
+            transition: 'all 200ms',
             top: zoomInfo.y,
             left: zoomInfo.x,
             transform: `scale(${zoomInfo.level})`,
