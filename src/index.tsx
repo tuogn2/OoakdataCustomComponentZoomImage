@@ -69,16 +69,15 @@ export const ZoomImage: FC = () => {
       const rect = container.getBoundingClientRect()
       const cursorX = event.clientX - rect.left
       const cursorY = event.clientY - rect.top
-      const MAX_ZOOM_LEVEL = 2.2
       setZoomInfo((prev) => ({
-        level: prev.level === 1 ? MAX_ZOOM_LEVEL : 1,
+        level: prev.level === 1 ? zoomLevel : 1,
         x:
           prev.level === 1
-            ? cursorX - ((cursorX - prev.x) * MAX_ZOOM_LEVEL) / prev.level
+            ? cursorX - ((cursorX - prev.x) * zoomLevel) / prev.level
             : 0,
         y:
           prev.level === 1
-            ? cursorY - ((cursorY - prev.y) * MAX_ZOOM_LEVEL) / prev.level
+            ? cursorY - ((cursorY - prev.y) * zoomLevel) / prev.level
             : 0
       }))
     }
