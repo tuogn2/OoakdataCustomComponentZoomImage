@@ -17,6 +17,7 @@ export const ZoomImage: FC = () => {
   })
 
   const [zoomInfo, setZoomInfo] = useState({ x: 0, y: 0, level: 1 })
+  const [isClicking, setIsClicking] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [startDragPosition, setStartDragPosition] = useState<{
     x: number
@@ -30,51 +31,10 @@ export const ZoomImage: FC = () => {
 
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // const handleZoomClick = (event: React.MouseEvent) => {
-  //   setZoomLevel((prev) => (prev === 1 ? 2 : 1)) // Toggle zoom levels
-  //   if (zoomLevel === 1) {
-  //     setPosition({ x: 0, y: 0 }) // Reset position on zoom out
-  //   }
-  //   event.stopPropagation()
-  // }
-
-  // Handle zoom on scroll
-  const handleZoomScroll = (event: React.WheelEvent) => {
-    event.preventDefault()
-    if (!containerRef.current) return
-
-    if (zoomMode !== 'normal') {
-      setZoomLevel(Math.max(zoomLevel * (event.deltaY < 0 ? 1.3 : 0.75), 1))
-      return
-    }
-
-    const container = containerRef.current
-    const rect = container.getBoundingClientRect()
-    const cursorX = event.clientX - rect.left
-    const cursorY = event.clientY - rect.top
-
-    setZoomInfo((prevZoomInfo: any) => {
-      const prevZoom = prevZoomInfo.level
-      let newZoom = prevZoom + (event.deltaY < 0 ? 0.12 : -0.12)
-      newZoom = Math.min(Math.max(newZoom, 1), 4)
-      if (newZoom === 1)
-        return {
-          x: 0,
-          y: 0,
-          level: 1
-        }
-      return {
-        x: cursorX - ((cursorX - prevZoomInfo.x) * newZoom) / prevZoom,
-        y: cursorY - ((cursorY - prevZoomInfo.y) * newZoom) / prevZoom,
-        level: newZoom
-      }
-    })
-  }
-
   // Start dragging
   const handleMouseDown = (event: React.MouseEvent) => {
     if (zoomInfo.level > 1) {
-      setIsDragging(true)
+      setIsClicking(true)
       setStartDragPosition({
         x: event.clientX - zoomInfo.x,
         y: event.clientY - zoomInfo.y
@@ -84,10 +44,11 @@ export const ZoomImage: FC = () => {
 
   // Drag the image
   const handleMouseMove = (event: React.MouseEvent) => {
-    if (isDragging && startDragPosition) {
+    if (isClicking && startDragPosition) {
       const newPosX = event.clientX - startDragPosition.x
       const newPosY = event.clientY - startDragPosition.y
       setZoomInfo((prev) => ({ ...prev, x: newPosX, y: newPosY }))
+      setIsDragging(true)
     }
 
     if (!containerRef.current) return
@@ -100,7 +61,27 @@ export const ZoomImage: FC = () => {
   }
 
   // Stop dragging
-  const handleMouseUp = () => {
+  const handleMouseUp = (event: React.MouseEvent) => {
+    setIsClicking(false)
+    if (!isDragging) {
+      const container = containerRef.current
+      if (!container) return
+      const rect = container.getBoundingClientRect()
+      const cursorX = event.clientX - rect.left
+      const cursorY = event.clientY - rect.top
+      const MAX_ZOOM_LEVEL = 2.2
+      setZoomInfo((prev) => ({
+        level: prev.level === 1 ? MAX_ZOOM_LEVEL : 1,
+        x:
+          prev.level === 1
+            ? cursorX - ((cursorX - prev.x) * MAX_ZOOM_LEVEL) / prev.level
+            : 0,
+        y:
+          prev.level === 1
+            ? cursorY - ((cursorY - prev.y) * MAX_ZOOM_LEVEL) / prev.level
+            : 0
+      }))
+    }
     setIsDragging(false)
   }
 
@@ -116,11 +97,11 @@ export const ZoomImage: FC = () => {
         borderRadius: '8px',
         cursor: zoomInfo.level > 1 && isDragging ? 'grab' : 'default'
       }}
-      onWheel={handleZoomScroll}
+      // onWheel={handleZoomScroll}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      // onMouseLeave={handleMouseUp}
     >
       {zoomMode !== 'normal' && cursorPosition && containerRef.current ? (
         <ImageMagnifier
@@ -137,6 +118,7 @@ export const ZoomImage: FC = () => {
         <img
           src={imageUrl}
           alt={imageAlt}
+          // onClick={handleZoomClick}
           style={{
             position: 'relative',
             margin: '0 auto',
@@ -147,7 +129,12 @@ export const ZoomImage: FC = () => {
             top: zoomInfo.y,
             left: zoomInfo.x,
             transform: `scale(${zoomInfo.level})`,
-            transformOrigin: '0 0'
+            transformOrigin: '0 0',
+            cursor: isDragging
+              ? 'grabbing'
+              : zoomInfo.level === 1
+                ? 'zoom-in'
+                : 'zoom-out'
           }}
           draggable={false}
         />
